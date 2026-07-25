@@ -273,4 +273,137 @@ SCM Cloud > Material Management > Inventory Management
 
 > 📅 **Ngày học**: July 23, 2026
 > 📄 **Slide nguồn**: YonSuite Partner Implementation Training_SCM_Inventory Mangement_20260723(with Homework).pdf
+
+---
+
+## 📝 BÀI 4: SALES MANAGEMENT (Quản lý Bán hàng & Trả hàng)
+
+> **Mục tiêu**: Thực hiện quy trình bán hàng theo kịch bản bài tập thực hành trên hệ thống YonSuite và hoàn thiện luồng chứng từ liên kết (**Document Flow**).
+> **Process Code**: S2P-P06-b01-01
+> **Kịch bản thực tế**:
+> - **Đơn vị/Tổ chức (Business/Inventory BU)**: `Innovation Hong Kong Limited`
+> - **Khách hàng (Customer)**: `AI Traders`
+> - **Vật tư (Material)**: Cà chua (`Tomato`) | Số lượng: `10,000 gram` | Đơn giá: `24 USD/gram` (Giá tự động lấy từ Price Table).
+> - **Hình thức thanh toán**: Trả sau khi ký nhận (Invoice after Sign-in).
+> - **Tình huống phát sinh**:
+>   - Giao đợt 1 (10.000 gram) -> Khách hàng ký nhận phát hiện chênh lệch 1.000 gram lỗi cần loại bỏ và trả lại.
+>   - Phát sinh chi phí vận chuyển bên thứ ba: 500.000 (được công ty chi trả trước và thu lại từ khách hàng - Prepaid by current company).
+>   - Giao đợt 2 (1.000 gram giao bù) -> Khách hàng nhận đủ và hoàn tất ký nhận.
+>   - Hoàn tất xuất hóa đơn, thu tiền từ khách hàng và đối trừ công nợ.
+
+### Quy trình thao tác từng bước chi tiết:
+
+#### 1. Chuẩn bị đơn giá trên Price Table (Bảng giá)
+- **Menu**: `SCM Cloud > Sales and Marketing Cloud > Middle Platform > Price Center > B2B Pricing > Price Adjustment Document`.
+- Tạo Price Adjustment mới:
+  - Chọn mẫu (Price Template): `Customer by Product`.
+  - Chọn Customer: `AI Traders`.
+  - Chọn Material: `Tomato`.
+  - Nhập giá: `24` | Loại tiền tệ: `Hong Kong Dollar (HKD)` hoặc `US Dollar (USD)` (Tùy cấu hình của khóa học).
+  - Lưu và phê duyệt chứng từ để giá có hiệu lực.
+
+#### 2. Khởi tạo Đơn bán hàng (Sales Order)
+- **Menu**: `SCM Cloud > Sales & Service > Order Management > Sales Order`.
+- Click **"Add"** để tạo đơn bán hàng mới:
+  - **Sales Org**: `Innovation Hong Kong Limited`
+  - **Transaction Type**: `Regular sales, we ship` (mã giao dịch chuẩn).
+  - **Customer**: `AI Traders`
+  - **Currency**: Phải khớp với tiền tệ trong Bảng giá (ví dụ: `HKD`/`USD`).
+  - Chọn Material: `Tomato` -> Nhập số lượng: `10,000 gram`. Đơn giá sẽ tự kích hoạt hiển thị là `24`.
+  - **Tham số cực kỳ quan trọng**: Tìm trường **"Even when I see after sign-in"** (Hóa đơn sau ký nhận) và chuyển thành **"Yes"**.
+  - Click **"Save"** -> **"Submit"** / **"Approve"**.
+
+#### 3. Xử lý Đợt Giao Hàng thứ nhất (Batch 1 - Có trả hàng)
+- **Bước 3.1: Giao hàng (Sales Shipping)**:
+  - Từ Đơn bán hàng đã phê duyệt, click **"Push"** -> chọn **"Sales Shipping"**.
+  - Kiểm tra thông tin số lượng giao `10,000 gram`.
+  - **"Save"** -> **"Approve"**.
+- **Bước 3.2: Xuất kho thực tế (Sales Issue)**:
+  - Thủ kho truy cập: `SCM Cloud > Material Management > Inventory Management > Inv Receipt/Issue > Product Outbound` (hoặc `Product Issue`).
+  - Tạo mới và chọn chứng từ gốc làm tham chiếu là Phiếu giao hàng ở trên (hoặc nhấn Push từ sales shipping).
+  - Chọn **Warehouse** xuất hàng.
+  - Đối với vật liệu quản lý theo lô: Click chọn dòng hàng -> click **"Auto-pick"** để tự động gán số lô theo FIFO.
+  - **"Save"** -> **"Approve"**.
+- **Bước 3.3: Ký nhận của khách hàng & Xử lý sai khác (Customer Sign-in Confirmation)**:
+  - Từ phiếu Sales Issue đợt 1, click **"Push"** -> chọn **"Sign-in Confirmation"**.
+  - Tại Biên bản ký nhận, nhập **Sign-in Quantity** là `9,000` (Khách thực tế ký nhận 9.000g, chênh lệch 1.000g lỗi).
+  - Truy cập tab **"Variance Details"** (Chi tiết sai khác):
+    - Đơn vị chịu trách nhiệm (Liability of variance): Chọn công ty bán hàng (`Paid by current company/Sellers`).
+    - Phương thức xử lý sai khác (Variance processing method): Chọn **"Sales Return"** (Trả hàng).
+  - **"Save"** -> **"Approve"**.
+- **Bước 3.4: Trả hàng (Sales Return)**:
+  - Từ biên bản ký nhận đợt 1, click **"Push"** -> chọn **"Sales Return"** cho `1,000 gram` chênh lệch lỗi.
+  - **Tham số đặc biệt**: Trong Đơn trả hàng, tìm trường **"Replenish"** thiết lập là **"Yes"** và chọn **"Supplementary delivery via original order"** (Giao bù thông qua đơn hàng gốc). Lưu ý này giúp liên kết đợt giao 2 chung vào 1 sơ đồ cây.
+  - **"Save"** -> **"Approve"** -> Hệ thống sẽ tự động tạo phiếu xuất kho âm (**Credit Product Issue Doc**).
+- **Bước 3.5: Xuất hóa đơn đợt 1 (Sales Invoice)**:
+  - Từ phiếu Sales Issue đợt 1, click **"Push"** -> chọn **"Sales Invoice"**. Hệ thống sẽ tự động đồng bộ số lượng hóa đơn là `9,000 gram` (đúng theo số lượng thực ký nhận).
+  - **"Save"** -> **"Approve"** -> Sinh khoản phải thu đã xác nhận (**Confirmed AR**).
+
+#### 4. Ghi nhận chi phí vận chuyển (Sales Expense)
+- **Menu**: Mở đơn hàng gốc `Sales Order` (hoặc truy cập `Sales & Service > Order Management > Supply Chain Expense`).
+- Click **"Expense"** để tạo chi phí bán hàng:
+  - Chọn mã chi phí: `Transportation Fee`.
+  - Chọn đối tượng chịu phí (Cost object type): `Prepaid by current company` (Công ty trả trước, sau đó đòi lại khách hàng qua AR).
+  - Nhập số tiền: `500,000` -> **"Save"** -> **"Approve"**.
+  - Hệ thống sẽ sinh AP cho đơn vị vận chuyển bên thứ ba và AR cho khách hàng để thu lại.
+
+#### 5. Xử lý Đợt Giao Hàng thứ hai (Batch 2 - Giao bù)
+- **Bước 5.1: Giao hàng bù**:
+  - Mở lại đơn bán hàng gốc (`XSDD...`).
+  - Hàng trả lại đã được ghi nhận cần bù `1,000 gram`, tiếp tục click **"Push"** -> chọn **"Sales Shipping"** (hệ thống sẽ tự động lọc số lượng giao bù là `1,000 gram`).
+  - **"Save"** -> **"Approve"**.
+- **Bước 5.2: Xuất kho đợt 2 (Sales Issue)**:
+  - Đẩy từ Shipping sang Phiếu xuất hàng đợt 2 cho `1,000 gram`.
+  - Gán số lô (Auto-pick), lưu và phê duyệt.
+- **Bước 5.3: Ký nhận đợt 2**:
+  - Đẩy sang Sign-in Confirmation. Lần này khách hàng nhận đủ `1,000 gram` mà không có lỗi.
+  - **"Save"** -> **"Approve"**.
+- **Bước 5.4: Xuất hóa đơn đợt 2 (Sales Invoice)**:
+  - Từ Sales Issue đợt 2, click **"Push"** -> chọn **"Sales Invoice"** cho `1,000 gram`.
+  - **"Save"** -> **"Approve"** -> Sinh khoản phải thu đã xác nhận (**Confirmed AR**) thứ hai.
+
+#### 6. Thu tiền & Đối trừ công nợ (Collection & A/R Settlement)
+- Đẩy từ Đơn bán hàng hoặc từ Hóa đơn bán hàng để tạo chứng từ thu tiền (**Collection Document**).
+- Thủ quỹ ghi nhận tiền gửi ngân hàng/tiền mặt, lưu và duyệt chứng từ.
+- Thực hiện đối trừ công nợ giữa Thu tiền (Collection) và Khoản phải thu (Confirmed AR) bao gồm cả hóa đơn và chi phí vận chuyển thu hộ để hoàn tất luồng tiền.
+
+### Kết quả Document Flow mong đợi:
+```mermaid
+graph TD
+    SO[Sales Order: 10,000g] --> Ship1[Sales Shipping 1: 10,000g]
+    SO --> Ship2[Sales Shipping 2: 1,000g]
+    
+    Ship1 --> Issue1[Sales Issue 1: 10,000g]
+    Ship2 --> Issue2[Sales Issue 2: 1,000g]
+    
+    Issue1 --> Sign1[Sign-in Confirmation 1: 9,000g / 1,000g defect]
+    Issue1 --> Invoice1[Sales Invoice 1: 9,000g]
+    
+    Sign1 --> Return[Sales Return: 1,000g]
+    Return --> CreditIssue[Credit Product Issue: -1,000g]
+    
+    Issue2 --> Sign2[Sign-in Confirmation 2: 1,000g]
+    Issue2 --> Invoice2[Sales Invoice 2: 1,000g]
+    
+    Invoice1 --> AR1[Confirmed A/R 1]
+    Invoice2 --> AR2[Confirmed A/R 2]
+    
+    SO --> Expense[Sales Expense]
+    Expense --> AR_Exp[A/R Transportation]
+    
+    AR1 --> Settlement[A/R Settlement]
+    AR2 --> Settlement
+    AR_Exp --> Settlement
+    Collection[Collection Document] --> Settlement
+```
+
+### ✅ Checklist đối chiếu kết quả:
+- [ ] Chứng từ gốc là Sales Order phải liên kết với 2 phiếu Sales Shipping.
+- [ ] Phiếu Sign-in 1 ghi nhận lỗi 1.000g và liên kết trực tiếp với Sales Return.
+- [ ] Hóa đơn 1 chỉ hiển thị 9.000g, Hóa đơn 2 hiển thị 1.000g.
+- [ ] Có xuất hiện khoản chi phí vận chuyển kết nối với đơn hàng gốc.
+- [ ] Quy trình kết thúc khi hai hóa đơn và chi phí phí được đối chiếu hoàn tất qua Settlement.
+
+---
+
 > 🤖 **Generated with Claude Code** | Co-Authored-By: Claude <noreply@anthropic.com>
